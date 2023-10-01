@@ -3,8 +3,8 @@
 import { FilterQuery, SortOrder } from "mongoose";
 
 import Community from "../models/community.model";
-import { connectToDatabase } from "../mongoose";
 import Thread from "../models/thread.model";
+import { connectToDatabase } from "../mongoose";
 import User from "../models/User.model";
 
 export async function createCommunity(

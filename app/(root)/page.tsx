@@ -1,12 +1,13 @@
 
 import { fetchPosts } from "@/lib/actions/thread.actions";
-import { UserButton } from "@clerk/nextjs";
 import ThreadCard from '@/components/cards/ThreadCard'
 import { currentUser } from "@clerk/nextjs";
 export default async  function Home() {
 
       const user = await currentUser();
       const results = await fetchPosts(1, 30); // Await the Promise
+      console.log("results",results);
+      
   return (
     <>
       <h1 className="head-text">Threads</h1>

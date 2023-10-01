@@ -1,10 +1,28 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import User from "../models/User.model";
-import { connectToDatabase } from "../mongoose";
-import Thread from "../models/thread.model";
 import { FilterQuery, SortOrder } from "mongoose";
+import { revalidatePath } from "next/cache";
+
+
+
+
+import { connectToDatabase } from "../mongoose";
+import User from "../models/User.model";
+import Thread from "../models/thread.model";
+import Community from "../models/community.model";
+
+export async function fetchUser(userId: string) {
+  try {
+    connectToDatabase();
+
+    return await User.findOne({ id: userId }).populate({
+      path: "communities",
+      model: Community,
+    });
+  } catch (error: any) {
+    throw new Error(`Failed to fetch user: ${error.message}`);
+  }
+}
 
 interface Params {
   userId: string;
@@ -14,6 +32,7 @@ interface Params {
   image: string;
   path: string;
 }
+
 export async function updateUser({
   userId,
   bio,
@@ -45,75 +64,94 @@ export async function updateUser({
   }
 }
 
-export async function fetchUser(userId: string) {
-  try {
-    connectToDatabase();
-
-    return await User.findOne({ id: userId });
-    // .populate({path: 'Communities', model: 'Community'});
-  } catch (error) {
-    throw new Error(`Error fetching user: ${error}`);
-  }
-}
-
 export async function fetchUserPosts(userId: string) {
   try {
     connectToDatabase();
 
+    // Find all threads authored by the user with the given userId
     const threads = await User.findOne({ id: userId }).populate({
       path: "threads",
       model: Thread,
-      populate: {
-        path: "author",
-        model: User,
-        select: "name image id",
-      },
+      populate: [
+        {
+          path: "community",
+          model: Community,
+          select: "name id image _id", // Select the "name" and "_id" fields from the "Community" model
+        },
+        {
+          path: "children",
+          model: Thread,
+          populate: {
+            path: "author",
+            model: User,
+            select: "name image id", // Select the "name" and "_id" fields from the "User" model
+          },
+        },
+      ],
     });
-
-    // .populate({path: 'Communities', model: 'Community'});
     return threads;
   } catch (error) {
-    throw new Error(`Error fetching Posts: ${error}`);
+    console.error("Error fetching user threads:", error);
+    throw error;
   }
 }
+
+// Almost similar to Thead (search + pagination) and Community (search + pagination)
 export async function fetchUsers({
   userId,
   searchString = "",
-  pageNuber = 1,
+  pageNumber = 1,
   pageSize = 20,
   sortBy = "desc",
 }: {
   userId: string;
   searchString?: string;
-  pageNuber?: number;
+  pageNumber?: number;
   pageSize?: number;
   sortBy?: SortOrder;
 }) {
   try {
     connectToDatabase();
-    const skipAmount = (pageNuber - 1) * pageSize;
+
+    // Calculate the number of users to skip based on the page number and page size.
+    const skipAmount = (pageNumber - 1) * pageSize;
+
+    // Create a case-insensitive regular expression for the provided search string.
     const regex = new RegExp(searchString, "i");
 
-    const q: FilterQuery<typeof User> = {
-      id: { $ne: userId },
+    // Create an initial query object to filter users.
+    const query: FilterQuery<typeof User> = {
+      id: { $ne: userId }, // Exclude the current user from the results.
     };
+
+    // If the search string is not empty, add the $or operator to match either username or name fields.
     if (searchString.trim() !== "") {
-      q.$or = [{ username: { $regex: regex } }, { name: { $regex: regex } }];
+      query.$or = [
+        { username: { $regex: regex } },
+        { name: { $regex: regex } },
+      ];
     }
+
+    // Define the sort options for the fetched users based on createdAt field and provided sort order.
     const sortOptions = { createdAt: sortBy };
-    const usersQuery = User.find(q)
+
+    const usersQuery = User.find(query)
       .sort(sortOptions)
       .skip(skipAmount)
       .limit(pageSize);
 
-    const totalUsersCount = await User.countDocuments(q);
+    // Count the total number of users that match the search criteria (without pagination).
+    const totalUsersCount = await User.countDocuments(query);
 
     const users = await usersQuery.exec();
+
+    // Check if there are more users beyond the current page.
     const isNext = totalUsersCount > skipAmount + users.length;
 
     return { users, isNext };
-  } catch (error: any) {
-    throw new Error(`Error fetching user: ${error.message}`);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    throw error;
   }
 }
 
@@ -121,15 +159,18 @@ export async function getActivity(userId: string) {
   try {
     connectToDatabase();
 
+    // Find all threads created by the user
     const userThreads = await Thread.find({ author: userId });
 
+    // Collect all the child thread ids (replies) from the 'children' field of each user thread
     const childThreadIds = userThreads.reduce((acc, userThread) => {
       return acc.concat(userThread.children);
     }, []);
 
+    // Find and return the child threads (replies) excluding the ones created by the same user
     const replies = await Thread.find({
       _id: { $in: childThreadIds },
-      author: { $ne: userId },
+      author: { $ne: userId }, // Exclude threads authored by the same user
     }).populate({
       path: "author",
       model: User,
@@ -138,6 +179,7 @@ export async function getActivity(userId: string) {
 
     return replies;
   } catch (error) {
-    throw new Error(`Error fetching Activity: ${error}`);
+    console.error("Error fetching replies: ", error);
+    throw error;
   }
 }
