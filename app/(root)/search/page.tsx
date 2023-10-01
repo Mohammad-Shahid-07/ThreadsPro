@@ -1,4 +1,4 @@
-import UserCard from "@/components/cards/userCard";
+import UserCard from "@/components/cards/UserCard";
 import PostThread from "@/components/forms/PostThread";
 import ProfileHeader from "@/components/shared/ProfileHeader";
 
