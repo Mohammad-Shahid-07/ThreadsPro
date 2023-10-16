@@ -84,7 +84,7 @@ const threadId = id.toString()
             <p className="mt-2 text-small-regular text-light-2"> {content}</p>
             <div className={`${isComment && "mb-10"} mt-5 flec flex-col gap-3`}>
               <div className="flex gap-3.5">
-                <Likes threadId={threadId} likes={likes.length}  currentUserId={currentUserId} />
+                <Likes threadId={threadId} likes={likes?.length}  currentUserId={currentUserId} />
                 <Link href={`/thread/${id}`}>
                   <Image
                     src="/assets/reply.svg"
