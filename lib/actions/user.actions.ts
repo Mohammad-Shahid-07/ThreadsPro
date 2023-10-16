@@ -3,9 +3,6 @@
 import { FilterQuery, SortOrder } from "mongoose";
 import { revalidatePath } from "next/cache";
 
-
-
-
 import { connectToDatabase } from "../mongoose";
 import User from "../models/User.model";
 import Thread from "../models/thread.model";
@@ -53,7 +50,7 @@ export async function updateUser({
         image,
         onboarded: true,
       },
-      { upsert: true }
+      { upsert: true },
     );
 
     if (path === "/profile/edit") {
@@ -181,5 +178,31 @@ export async function getActivity(userId: string) {
   } catch (error) {
     console.error("Error fetching replies: ", error);
     throw error;
+  }
+}
+
+// In your user.actions.js or equivalent file
+
+// In your user.actions.js or equivalent file
+export async function fetchUsersByRegex(search: string, userId: string) {
+  connectToDatabase();
+
+  console.log(search);
+  try {
+    const users = await User.find({
+      $and: [
+        { id: { $ne: userId } }, // Exclude the current user
+        {
+          $or: [
+            { name: { $regex: search, $options: "i" } }, // Case-insensitive name match
+            { username: { $regex: search, $options: "i" } }, // Case-insensitive username match
+          ],
+        },
+      ],
+    }).limit(10);
+   return users;
+  } catch (error) {
+    console.error(error);
+    return [];
   }
 }

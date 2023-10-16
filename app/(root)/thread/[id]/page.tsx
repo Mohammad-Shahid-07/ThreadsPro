@@ -27,6 +27,7 @@ const Page = async ({params} : {params: {id: string}}) =>{
             createdAt={thread.createdAt}
             community={thread.community}
             comments={thread.children}
+            likes={thread.likes}
             />
         </div>
         <div className="mt-7">
@@ -43,6 +44,7 @@ const Page = async ({params} : {params: {id: string}}) =>{
                  key={childItem._id}
                  id={childItem._id}
                  currentUserId={user?.id || ""}
+                 likes={childItem.likes}
                  parentId={childItem.parentId}
                  content= {childItem.text}
                  author={childItem.author}

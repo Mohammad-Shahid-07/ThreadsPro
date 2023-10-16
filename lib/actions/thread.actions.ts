@@ -7,6 +7,8 @@ import { connectToDatabase } from "../mongoose";
 import User from "../models/User.model";
 import Thread from "../models/thread.model";
 import Community from "../models/community.model";
+import mongoose from "mongoose";
+
 
 export async function fetchPosts(pageNumber = 1, pageSize = 20) {
   connectToDatabase();
@@ -238,3 +240,56 @@ export async function addCommentToThread(
     throw new Error("Unable to add comment");
   }
 }
+
+
+
+export async function addLikes(userId: string, threadId: string) {
+  connectToDatabase();
+  try {
+    const thread = await Thread.findById(threadId);
+    // const user = await Thread.findOne({ id: userId });
+    const user = await User.findOne({ id: userId }); 
+    // Assuming User is the model for users
+    
+    const userID = user._id;
+
+    const liked = thread.likes.includes(userID);
+
+    if (!liked) {
+      // If the user hasn't liked the thread, add the like
+      thread.likes.push(userID);
+    } else {
+      // If the user has already liked the thread, remove the like
+      thread.likes = thread.likes.filter((like: mongoose.Schema.Types.ObjectId) => like.toString() !== userID.toString());
+    }
+
+    await thread.save();
+
+    return thread.likes.length;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export async function hasLike(userId: string, threadId: string) {
+  connectToDatabase();
+  try {
+    const thread = await Thread.findById(threadId);
+    // const user = await Thread.findOne({ id: userId });
+    const user = await User.findOne({ id: userId }); 
+    // Assuming User is the model for users
+    
+    const userID = user._id;
+
+    const liked = thread.likes.includes(userID);
+    if (liked) {
+      return true;
+    }else{
+      return false;
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+

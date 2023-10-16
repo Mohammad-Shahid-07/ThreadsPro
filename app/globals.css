@@ -159,3 +159,18 @@
 .comment-form_btn {
   @apply rounded-3xl bg-primary-500 px-8 py-2 !text-small-regular text-light-1 max-xs:w-full !important;
 }
+
+/* styles.css (or your preferred CSS file) */
+.fade-in {
+  opacity: .8;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.scale-up {
+  transform: scale(1);
+  transition: transform 0.3s ease-in-out;
+}
+
+.scale-up:hover {
+  transform: scale(1.1);
+}

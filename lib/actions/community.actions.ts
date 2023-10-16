@@ -4,8 +4,9 @@ import { FilterQuery, SortOrder } from "mongoose";
 
 import Community from "../models/community.model";
 import Thread from "../models/thread.model";
-import { connectToDatabase } from "../mongoose";
+
 import User from "../models/User.model";
+import { connectToDatabase } from "../mongoose";
 
 export async function createCommunity(
   id: string,
@@ -17,6 +18,7 @@ export async function createCommunity(
 ) {
   try {
     connectToDatabase();
+   
 
     // Find the user with the provided unique id
     const user = await User.findOne({ id: createdById });

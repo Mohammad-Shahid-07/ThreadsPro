@@ -1,5 +1,3 @@
-import PostThread from "@/components/forms/PostThread";
-import ProfileHeader from "@/components/shared/ProfileHeader";
 
 import { fetchUser, fetchUsers, getActivity } from "@/lib/actions/user.actions";
 import { currentUser } from "@clerk/nextjs";
@@ -13,7 +11,7 @@ const Page = async () => {
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
   const activity = await getActivity(userInfo._id);
-  console.log(activity);
+  
   
   return (
     <section>

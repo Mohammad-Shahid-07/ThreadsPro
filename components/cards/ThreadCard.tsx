@@ -1,6 +1,14 @@
+
 import { formatDateString } from "@/lib/utils";
+
+
+// Inside your component function
+
 import Image from "next/image";
 import Link from "next/link";
+import ShareButton from "./Share";
+import Likes from "./Likes";
+
 
 interface Props {
   id: string;
@@ -17,7 +25,9 @@ interface Props {
     name: string;
     image: string;
     id: string;
+
   };
+
   comments: {
     author: {
       image: string;
@@ -25,9 +35,10 @@ interface Props {
     id: string;
   }[];
   isComment?: boolean;
+  likes: string[];
 }
 
-const ThreadCard = ({
+const ThreadCard = async ({
   id,
   currentUserId,
   parentId,
@@ -36,12 +47,20 @@ const ThreadCard = ({
   createdAt,
   community,
   comments,
-  isComment
+  isComment,
+  likes,
 }: Props) => {
+  
 
   
+const threadId = id.toString()
+  
   return (
-    <article className={`flex w-full flex-col rounded-xl ${isComment ? 'px-0 xs:px-7' : 'bg-dark-2 p-7 mb-5 ' }`}>
+    <article
+      className={`flex w-full flex-col rounded-xl ${
+        isComment ? "px-0 xs:px-7" : "bg-dark-2 p-7 mb-5 "
+      }`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex w-full flex-1 flex-row gap-4">
           <div className="flex flex-col items-center">
@@ -63,15 +82,9 @@ const ThreadCard = ({
               </h5>
             </Link>
             <p className="mt-2 text-small-regular text-light-2"> {content}</p>
-            <div className={`${isComment && 'mb-10'} mt-5 flec flex-col gap-3`}>
+            <div className={`${isComment && "mb-10"} mt-5 flec flex-col gap-3`}>
               <div className="flex gap-3.5">
-                <Image
-                  src="/assets/heart-gray.svg"
-                  alt="heart"
-                  width={24}
-                  height={24}
-                  className="object-contain cursor-pointer"
-                />
+                <Likes threadId={threadId} likes={likes.length}  currentUserId={currentUserId} />
                 <Link href={`/thread/${id}`}>
                   <Image
                     src="/assets/reply.svg"
@@ -81,13 +94,7 @@ const ThreadCard = ({
                     className="object-contain cursor-pointer"
                   />
                 </Link>
-                <Image
-                  src="/assets/share.svg"
-                  alt="share"
-                  width={24}
-                  height={24}
-                  className="object-contain cursor-pointer"
-                />
+               <ShareButton  threadId={threadId} />
                 <Image
                   src="/assets/repost.svg"
                   alt="repost"
@@ -97,22 +104,24 @@ const ThreadCard = ({
                 />
               </div>
               {isComment && comments.length > 0 && (
-                  <Link href={`/thread/${id}`}>
-                    <p className="mt-1 text-subtle-medium text-gray-1 ">{comments.length} Replies</p>
-                  </Link>
+                <Link href={`/thread/${id}`}>
+                  <p className="mt-1 text-subtle-medium text-gray-1 ">
+                    {comments.length} Replies
+                  </p>
+                </Link>
               )}
             </div>
           </div>
-        </div>        
-       
-        {!isComment && community && 
-          <Link href={`/community/${community.id}`}> 
+        </div>
+
+        {!isComment && community && (
+          <Link href={`/community/`}>
             <div className="flex mt-5 flex-col items-center">
-          <p className="text-subtle-medium text-gray-1">
-            {formatDateString(createdAt)} - {community.name} community
-          </p>
+              <p className="text-subtle-medium text-gray-1">
+                {formatDateString(createdAt)} - {community?.name} community
+              </p>
               <Image
-                src={community.image}
+                src={community?.image}
                 alt="Community Image"
                 fill
                 className="cursor-pointer ml-1 object-cover rounded-full"
@@ -120,7 +129,7 @@ const ThreadCard = ({
               <div className="thread-card_bar" />
             </div>
           </Link>
-         }
+        )}
       </div>
     </article>
   );

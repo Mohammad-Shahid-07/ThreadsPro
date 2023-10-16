@@ -1,12 +1,12 @@
 
 import { fetchPosts } from "@/lib/actions/thread.actions";
+
 import ThreadCard from '@/components/cards/ThreadCard'
 import { currentUser } from "@clerk/nextjs";
 export default async  function Home() {
 
       const user = await currentUser();
       const results = await fetchPosts(1, 30); // Await the Promise
-      console.log("results",results);
       
   return (
     <>
@@ -28,6 +28,8 @@ export default async  function Home() {
             createdAt={post.createdAt}
             community={post.community}
             comments={post.children}
+            likes= {post.likes}
+
             />
           ))
           }
