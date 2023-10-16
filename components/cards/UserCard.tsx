@@ -13,7 +13,7 @@ const UserCard = ({ id, name, username, imgUrl, personType }: Props) => {
     const router = useRouter()
   return (
 
-    <article className="user-card">
+    <article className="user-card mb-5">
         <div className="user-card_avatar">
             <Image src={imgUrl}
             alt="logo"
